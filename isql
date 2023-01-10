@@ -1,0 +1,128 @@
+-- 1
+create database akademik;
+use akademik;
+
+create table mkuliah(
+Kode_kul char(7) primary key,
+Nama_kul char(20) not null,
+SKS decimal(2) not null,
+Smt_tawar char(1),
+Klp_kul enum ('1','2','3'),
+Progdi enum ('1','2','3','4','5')
+) engine = innodb;
+
+-- 2
+insert into mkuliah(Kode_kul,Nama_kul,SKS,Smt_tawar,Klp_kul,Progdi) values
+('A11-101','Pancasila','2','1','1','1'),
+('A11-102','Logika Algoritma','4','1','2','1'),
+('A11-103','Pemrograman Basic','2','1','2','1'),
+('A11-201','Sistem Basis Data','2','2','2','1'),
+('A11-202','Pemrograman Pascal','4','2','2','1'),
+('A11-203','Ilmu Sosial Dasar','2','2','1','1'),
+('A11-501','Bimbingan karier','2','5','3','1'),
+('A11-601','Proyek Akhir','4','6','3','1');
+
+-- 3
+create table mhs(
+Nim char(14) primary key,
+Nama char(25) not null unique key,
+Kelamin enum('P','W') not null,
+Agama enum ('1','2','3','4','5','6') default '1',
+Tgl_lhr date
+) engine = innodb;
+
+-- 4
+alter table mhs add column alamat varchar(30) after nama;
+
+-- 5
+alter table mhs add column kota char(20) after alamat;
+
+-- 6
+alter table mhs change column kelamin sex enum('P','W') not null;
+
+-- 7
+insert into mhs (Nim, Nama, alamat, kota, sex, Agama, Tgl_lhr) values
+('A11.2001.00234','Dedy Sutanta','Jl. A. Yani','Solo','P','1','1979-10-20'),
+('A11.2001.00214','Budi Satria','Jl. Dago 10','Yogyakarta','P','1','1978-11-22'),
+('A11.2001.00224','Sulis','Jl. Nakula I 25','Semarang','W','2','1975-08-16'),
+('A11.2001.00344','Suci Andriani','Jl. Seroja Raya','Semarang','W','3','1977-09-21'),
+('A12.2001.00001','Agus Wahyu','Jl. Nakula I No. 5','Semarang','P','2','1976-08-12'),
+('A11.2001.00002','Sari Wijaya','A. Yani. 20','Solo','W','1','1977-10-11'),
+('A22.2001.00003','Lestari','Nakula raya 20','Semarang','W','3','1975-11-15');
+
+-- 8
+create table dosen(
+Kode_dos int(4) unsigned primary key unique auto_increment,
+Nama_dos varchar(30) not null,
+Alamat_dos varchar(50),
+Tgl_masuk date
+)engine = innodb;
+
+-- 9
+alter table dosen add column kota_dos char(20) after Alamat_dos;
+
+-- 10
+insert into dosen (Nama_dos, Alamat_dos,kota_dos, Tgl_masuk) values
+('Arief Budiman, Ir.','Jl. A. Yani 20','Semarang','1990-02-19'),
+('Husni, Prof.','Jl. Merdeka Raya','Semarang','1988-10-13'),
+('Candawati, Dra.','Perum Korpri I','Solo','1994-09-20'),
+('Irawan S.,DR.','Jl. Kemuning Barat 11','Semarang','1992-04-15'),
+('Sumiati,SE.,M.Si','Jl. Seroja Indah 100','Kudus','1995-08-11');
+
+-- 11
+update dosen set
+Alamat_dos = 'Perum Pondok Indah C-10',
+kota_dos = 'Semarang',
+Tgl_masuk = '1994-09-21'
+where Nama_dos = 'Candawati, Dra.';
+
+-- 12
+select Nama_dos, kota_dos, year(curdate()) - year(Tgl_masuk) as lama_kerja from dosen;
+
+-- 13
+create table krs(
+Kode_kul char(7) not null,
+Nim char(14) not null,
+Kode_dos int(4) unsigned not null,
+Nilai tinyint(100) unsigned
+) engine = innodb;
+
+alter table krs add primary key (Kode_kul, Nim, Kode_dos);
+alter table krs add constraint fk_krs_mhs foreign key krs(Nim) references mhs(Nim);
+alter table krs add constraint fk_krs_mkuliah foreign key krs(Kode_kul) references mkuliah(Kode_kul);
+alter table krs add constraint fk_krs_dosen foreign key krs(Kode_dos) references dosen(Kode_dos);
+
+
+-- 14
+insert into krs (Kode_kul, Nim, Kode_dos, Nilai) values
+('A11-101','A11.2001.00234','1','80'),
+('A11-102','A11.2001.00234','2','90'),
+('A11-103','A11.2001.00234','3','85'),
+('A11-201','A11.2001.00234','4','80'),
+('A11-202','A11.2001.00234','5','90'),
+('A11-203','A11.2001.00234','1','85'),
+('A11-501','A11.2001.00234','2','80'),
+('A11-601','A11.2001.00234','3','90'),
+('A11-101','A11.2001.00214','4','85'),
+('A11-102','A11.2001.00214','5','80'),
+('A11-103','A11.2001.00214','1','90'),
+('A11-201','A11.2001.00214','2','85'),
+('A11-202','A11.2001.00214','3','80'),
+('A11-203','A11.2001.00214','4','90'),
+('A11-501','A11.2001.00214','5','85'),
+('A11-601','A11.2001.00214','1','80'),
+('A11-101','A11.2001.00224','2','90'),
+('A11-102','A11.2001.00224','3','85'),
+('A11-103','A11.2001.00224','4','80');
+
+-- 15
+select Kode_kul, Nim, Nama, sex as 'Jenis Kelamin', Kode_dos, Nilai,
+case
+when Nilai >= 86 and Nilai <= 100 then 'A'
+when Nilai >= 71 then 'B'
+when Nilai >= 56 then 'C'
+when Nilai >= 41 then 'D'
+when Nilai >= 0 then 'E'
+else 'Tidak Ada'
+end as 'Nilai Huruf'
+from krs join mhs using (Nim);
